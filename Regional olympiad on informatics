@@ -1,0 +1,107 @@
+#include <iostream>
+#include <fstream>
+#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+struct parts
+{
+	unsigned int num = 0;
+  double sum = 0;
+};
+
+bool cmp(parts& a, parts& b)
+{
+	if (round(a.sum * 100) / 100 == round(b.sum * 100) / 100)
+	{
+		return a.num < b.num;
+	}
+	return a.sum > b.sum;
+}
+
+struct regs
+{
+	unsigned int N = 0;
+	parts* membs;
+	unsigned int currentmember = 0;
+	unsigned int Q = 0;
+	unsigned int passed = 0;
+};
+
+
+int main()
+{
+	unsigned int N = 0, partsnum = 0, passednum = 0;
+	ifstream fin;
+	fin.open("input.txt");
+	fin >> N;
+	regs* reglist = new regs[N];
+	for (int i = 0; i < N; ++i)
+	{
+		fin >> (reglist[i]).N;
+		(reglist[i]).membs = new parts[(reglist[i]).N];
+		partsnum += (reglist[i]).N;
+	}
+	for (int i = 0; i < N; ++i)
+	{
+		fin >> (reglist[i]).Q;
+		passednum += (reglist[i]).Q;
+	}
+	for (int i = 0; i < partsnum; ++i)
+	{
+		int code = 0, partreg = 0;
+		double x1 = 0, x2 = 0, x3 = 0, x4 = 0;
+		fin >> code >> partreg;
+		((reglist[partreg - 1]).membs[(reglist[partreg - 1]).currentmember]).num = code;
+		fin >> x1 >> x2 >> x3 >> x4;
+		(((reglist[partreg - 1]).membs)[(reglist[partreg - 1]).currentmember]).sum = x1 + x2 + x3 + x4;
+		++((reglist[partreg - 1]).currentmember);
+	}
+	fin.close();
+	for (int i = 0; i < N; ++i)
+	{
+		sort(reglist[i].membs, reglist[i].membs + (reglist[i]).N, cmp);
+	}
+
+	parts* passed1 = new parts[partsnum];
+	int currentpassed = 0;
+	for (int j = 0; j < N; ++j)
+	{
+		for (int i = 0; i < reglist[j].Q; ++i)
+		{
+			if (((reglist[j]).membs[i]).sum == 0)
+			{
+				passednum -= (reglist[j].Q - i);
+				break;
+			}
+			if (round(((reglist[j]).membs[i + 1]).sum * 100) / 100 == round(((reglist[j]).membs[i]).sum * 100) / 100 && i == reglist[j].Q - 1)
+			{
+				++reglist[j].Q;
+				++passednum;
+			}
+			passed1[currentpassed].num = ((reglist[j]).membs[i]).num;
+			passed1[currentpassed].sum = ((reglist[j]).membs[i]).sum;
+			++currentpassed;
+		}
+	}
+	sort(passed1, passed1 + passednum, cmp);
+	ofstream fout;
+	fout.open("output.txt");
+	fout << passednum << '\n';
+	fout.setf(ios::fixed);
+	fout.precision(2);
+	for (int i = 0; i < passednum; ++i)
+	{
+		if (i == passednum - 1)
+		{
+			fout << passed1[i].num << ' ' << passed1[i].sum;
+		}
+		else
+		{
+			fout << passed1[i].num << ' ' << passed1[i].sum << '\n';
+		}
+	}
+	fout.close();
+}
